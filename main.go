@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/getlantern/systray"
-	"github.com/petershen0307/watchman/icon"
+	"github.com/petershen0307/citray/icon"
 )
 
 func main() {
