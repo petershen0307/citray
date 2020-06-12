@@ -7,13 +7,6 @@ import (
 	"github.com/petershen0307/citray/icon"
 )
 
-func main() {
-	onExit := func() {
-	}
-
-	systray.Run(onReady, onExit)
-}
-
 func onReady() {
 	systray.SetTemplateIcon(icon.DataGithub, icon.DataGithub)
 	systray.SetTitle(time.Now().String())
