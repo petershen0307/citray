@@ -8,7 +8,11 @@ jobs:
       - image: circleci/golang:1.14.1
     working_directory: /go/src/github.com/petershen0307/citray
     steps:
-      - run: echo "checkout code"
       - checkout
-      - run: echo "build code"
-      - run: go build
+      - run:
+          name: Build
+          command: go build -ldflags "-H=windowsgui"
+          environment:
+            - CGO_ENABLED: 0
+            - GOOS: windows
+            - GOARCH: amd64
