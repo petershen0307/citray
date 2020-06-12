@@ -24,9 +24,13 @@ func (c *githubClientWrapper) init(ctx context.Context, token, enterpriceURL str
 	)
 	tc := oauth2.NewClient(c.ctx, ts)
 	var err error
-	c.client, err = github.NewEnterpriseClient(enterpriceURL, enterpriceURL, tc)
-	if err != nil {
-		log.Println("NewEnterpriseClient() error:", err)
+	if enterpriceURL == "" {
+		c.client = github.NewClient(tc)
+	} else {
+		c.client, err = github.NewEnterpriseClient(enterpriceURL, enterpriceURL, tc)
+		if err != nil {
+			log.Println("NewEnterpriseClient() error:", err)
+		}
 	}
 }
 
