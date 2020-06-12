@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/google/go-github/v32/github"
 	"golang.org/x/oauth2"
@@ -52,7 +53,7 @@ func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer 
 			})
 		}
 		for _, reviewer := range pr.RequestedReviewers {
-			if reviewer.GetLogin() == prReviewer {
+			if strings.ToLower(reviewer.GetLogin()) == strings.ToLower(prReviewer) {
 				prList = append(prList, prStruct{
 					url: pr.GetURL(),
 				})
