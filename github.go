@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"path"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -33,6 +34,15 @@ func (c *githubClientWrapper) init(ctx context.Context, token, enterpriceURL str
 			log.Println("NewEnterpriseClient() error:", err)
 		}
 	}
+}
+
+func (c *githubClientWrapper) queryPRFromSetting(setting Setting) map[string][]prStruct {
+	repositories := make(map[string][]prStruct)
+	for _, repo := range setting.Github.Repositories {
+		prList := c.getSpecificReviewerPR(repo.Owner, repo.RepoName, setting.Github.UserName)
+		repositories[path.Join(repo.Owner, repo.RepoName)] = append(repositories[path.Join(repo.Owner, repo.RepoName)], prList...)
+	}
+	return repositories
 }
 
 func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer string) []prStruct {
