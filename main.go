@@ -1,10 +1,13 @@
 package main
 
-import "github.com/getlantern/systray"
+import (
+	"context"
+	"fmt"
+)
 
 func main() {
-	onExit := func() {
-	}
-
-	systray.Run(onReady, onExit)
+	setting := parseSetting("setting.yaml")
+	githubClient := githubClientWrapper{}
+	githubClient.init(context.Background(), setting)
+	fmt.Println(githubClient.queryPRFromSetting())
 }
