@@ -15,31 +15,33 @@ type prStruct struct {
 }
 
 type githubClientWrapper struct {
-	client *github.Client
-	ctx    context.Context
+	client  *github.Client
+	ctx     context.Context
+	setting Setting
 }
 
-func (c *githubClientWrapper) init(ctx context.Context, token, enterpriceURL string) {
+func (c *githubClientWrapper) init(ctx context.Context, setting Setting) {
 	c.ctx = ctx
+	c.setting = setting
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: c.setting.Github.Token},
 	)
 	tc := oauth2.NewClient(c.ctx, ts)
 	var err error
-	if enterpriceURL == "" {
+	if c.setting.Github.URL == "" {
 		c.client = github.NewClient(tc)
 	} else {
-		c.client, err = github.NewEnterpriseClient(enterpriceURL, enterpriceURL, tc)
+		c.client, err = github.NewEnterpriseClient(c.setting.Github.URL, c.setting.Github.URL, tc)
 		if err != nil {
 			log.Println("NewEnterpriseClient() error:", err)
 		}
 	}
 }
 
-func (c *githubClientWrapper) queryPRFromSetting(setting Setting) map[string][]prStruct {
+func (c *githubClientWrapper) queryPRFromSetting() map[string][]prStruct {
 	repositories := make(map[string][]prStruct)
-	for _, repo := range setting.Github.Repositories {
-		prList := c.getSpecificReviewerPR(repo.Owner, repo.RepoName, setting.Github.UserName)
+	for _, repo := range c.setting.Github.Repositories {
+		prList := c.getSpecificReviewerPR(repo.Owner, repo.RepoName, c.setting.Github.UserName)
 		repositories[path.Join(repo.Owner, repo.RepoName)] = append(repositories[path.Join(repo.Owner, repo.RepoName)], prList...)
 	}
 	return repositories
