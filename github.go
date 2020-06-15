@@ -50,13 +50,15 @@ func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer 
 	// currently not support pagination
 	pullRequests, response, err := c.client.PullRequests.List(c.ctx, owner, repoName, opt)
 	prList := []prStruct{}
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	if response != nil {
 		log.Println(response.Status)
 	}
-	log.Println(len(pullRequests))
+	log.Println("pr size:", len(pullRequests))
 	for _, pr := range pullRequests {
-		log.Println(pr.GetURL())
+		log.Println("repo:", path.Join(owner, repoName), "pr url:", pr.GetURL())
 		if len(pr.RequestedReviewers) == 0 {
 			prList = append(prList, prStruct{
 				url: pr.GetURL(),
@@ -68,7 +70,7 @@ func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer 
 					url: pr.GetURL(),
 				})
 			}
-			log.Println(reviewer.GetLogin())
+			log.Println("repo:", path.Join(owner, repoName), "reviewer:", reviewer.GetLogin())
 		}
 	}
 	return prList
