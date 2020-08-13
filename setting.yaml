@@ -1,0 +1,7 @@
+github:
+  url: "" # URL format should be http(s)://[hostname]
+  userName: "" # your github login name
+  token: "" # token from https://github.com/settings/tokens github > Settings > Developer settings
+  repositories:
+    - owner: ""
+      repoName: ""

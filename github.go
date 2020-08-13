@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"path"
 	"strings"
 
 	"github.com/google/go-github/v32/github"
@@ -14,25 +15,36 @@ type prStruct struct {
 }
 
 type githubClientWrapper struct {
-	client *github.Client
-	ctx    context.Context
+	client  *github.Client
+	ctx     context.Context
+	setting Setting
 }
 
-func (c *githubClientWrapper) init(ctx context.Context, token, enterpriceURL string) {
+func (c *githubClientWrapper) init(ctx context.Context, setting Setting) {
 	c.ctx = ctx
+	c.setting = setting
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: c.setting.Github.Token},
 	)
 	tc := oauth2.NewClient(c.ctx, ts)
 	var err error
-	if enterpriceURL == "" {
+	if c.setting.Github.URL == "" {
 		c.client = github.NewClient(tc)
 	} else {
-		c.client, err = github.NewEnterpriseClient(enterpriceURL, enterpriceURL, tc)
+		c.client, err = github.NewEnterpriseClient(c.setting.Github.URL, c.setting.Github.URL, tc)
 		if err != nil {
 			log.Println("NewEnterpriseClient() error:", err)
 		}
 	}
+}
+
+func (c *githubClientWrapper) queryPRFromSetting() map[string][]prStruct {
+	repositories := make(map[string][]prStruct)
+	for _, repo := range c.setting.Github.Repositories {
+		prList := c.getSpecificReviewerPR(repo.Owner, repo.RepoName, c.setting.Github.UserName)
+		repositories[path.Join(repo.Owner, repo.RepoName)] = append(repositories[path.Join(repo.Owner, repo.RepoName)], prList...)
+	}
+	return repositories
 }
 
 func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer string) []prStruct {
@@ -40,13 +52,15 @@ func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer 
 	// currently not support pagination
 	pullRequests, response, err := c.client.PullRequests.List(c.ctx, owner, repoName, opt)
 	prList := []prStruct{}
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	if response != nil {
 		log.Println(response.Status)
 	}
-	log.Println(len(pullRequests))
+	log.Println("pr size:", len(pullRequests))
 	for _, pr := range pullRequests {
-		log.Println(pr.GetURL())
+		log.Println("repo:", path.Join(owner, repoName), "pr url:", pr.GetURL())
 		if len(pr.RequestedReviewers) == 0 {
 			prList = append(prList, prStruct{
 				url: pr.GetURL(),
@@ -58,7 +72,7 @@ func (c *githubClientWrapper) getSpecificReviewerPR(owner, repoName, prReviewer 
 					url: pr.GetURL(),
 				})
 			}
-			log.Println(reviewer.GetLogin())
+			log.Println("repo:", path.Join(owner, repoName), "reviewer:", reviewer.GetLogin())
 		}
 	}
 	return prList
